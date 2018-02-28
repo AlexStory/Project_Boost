@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Rocket : MonoBehaviour
@@ -30,6 +29,7 @@ public class Rocket : MonoBehaviour
 	// Update is called once per frame
 	private void Update ()
 	{
+	    HandleSkipLevel();
         if (state != State.Alive) return;
 
 	    HandleThrust();
@@ -55,7 +55,7 @@ public class Rocket : MonoBehaviour
 
     private void StartDeath()
     {
-        state = state = State.Dying;
+        state = State.Dying;
         _audioSource.Stop();
         _audioSource.PlayOneShot(rocketExplosion);
         explosionParticleSystem.Play();
@@ -79,7 +79,12 @@ public class Rocket : MonoBehaviour
 
     private void LoadNextScene()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        var nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        if (SceneManager.sceneCountInBuildSettings == nextSceneIndex)
+        {
+            SceneManager.LoadScene(0);
+        }
+        SceneManager.LoadScene(nextSceneIndex);
     }
 
     private void HandleThrust()
@@ -96,6 +101,14 @@ public class Rocket : MonoBehaviour
        
     }
 
+    private void HandleSkipLevel()
+    {
+        if (Input.GetKey(KeyCode.L) && Debug.isDebugBuild)
+        {
+            LoadNextScene();
+        }
+    }
+
     private void ApplyThrust()
     {
         _rigidBody.AddRelativeForce(Vector3.up * mainThrust);
@@ -110,7 +123,7 @@ public class Rocket : MonoBehaviour
 
     private void HandleRotation()
     {
-        _rigidBody.freezeRotation = true;
+        _rigidBody.angularVelocity = Vector3.zero;
 
         var rotationSpeed = speed * Time.deltaTime;
 
@@ -122,8 +135,6 @@ public class Rocket : MonoBehaviour
         {
             transform.Rotate(Vector3.forward * rotationSpeed);
         }
-
-        _rigidBody.freezeRotation = false;
     }
 
 
